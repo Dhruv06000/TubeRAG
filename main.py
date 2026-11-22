@@ -9,14 +9,10 @@ from src.faiss_index import get_or_create_vector_store
 from src.reranker import get_reranking_retriever
 from src.context_builder import get_prompt_template
 from src.generator import get_llm
-from src.pipeline import run_rag, format_sources
+from src.pipeline import run_rag, format_sources , is_refusal
 from src.summarizer import needs_summary, build_summary_chain
 
 load_dotenv()  # loads OPENAI_API_KEY from .env
-
-
-def is_refusal(answer: str) -> bool:
-    return answer.replace("’", "'").lower().startswith("i don't know")
 
 
 def ask_for_video():
