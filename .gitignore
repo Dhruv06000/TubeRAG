@@ -27,7 +27,6 @@ data/
 *.index
 *.faiss
 *.pkl
-src/transcript.txt
 
 # eval tooling
 .deepeval/
