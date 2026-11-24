@@ -1,9 +1,11 @@
 # TubeRAG: A Self-Evaluating YouTube Chatbot
 
-Chat with any YouTube video that has English captions. Answers come only from the video's transcript, and the whole pipeline (retriever, generator, end to end) is measured with an automated evaluation suite instead of "it seems to work".
+Chat with any YouTube video that has English captions. Answers come only from the video's transcript, with timestamped links back to the moment in the video. The whole pipeline (retriever, generator, end to end) is measured with an automated evaluation suite instead of "it seems to work".
 
 ![Demo: asking about a video](docs/demo-1.png)
 ![Demo: summarizing a video](docs/demo-2.png)
+
+> **Run it locally.** The app works fully on your machine (see [Getting started](#getting-started)). A hosted copy on Streamlit Community Cloud can't fetch transcripts, because YouTube blocks transcript requests from cloud server IPs. See [Limitations](#limitations).
 
 ## Why this project
 
@@ -25,20 +27,21 @@ flowchart LR
     H --> I[LLM answers from<br/>transcript only]
     R -- yes --> S[Full transcript<br/>+ summary prompt]
     S --> I
-    I --> J[Answer]
+    I --> J[Answer + timestamped sources]
 ```
 
 | Step | Module | What it does |
 |---|---|---|
-| 1. Ingestion | `src/ingestion.py` | Accepts a YouTube link (watch, youtu.be, Shorts) or a bare video ID, fetches the English transcript with caption timings, and caches it. Gives a clear message for missing captions, private videos, bad links, and transcripts over 150,000 characters. Also loads `.vtt` files for evaluation |
-| 2. Chunking | `src/chunking.py` | Recursive character splitting with overlap |
+| 1. Ingestion | `src/ingestion.py` | Accepts a YouTube link (watch, youtu.be, Shorts) or a bare video ID, fetches the English transcript with caption timings, and caches it. Gives a clear message for missing captions, private videos, bad links, blocked requests, and transcripts over 150,000 characters. Also loads `.vtt` files for evaluation |
+| 2. Chunking | `src/chunking.py` | Recursive character splitting with overlap. Each chunk records the video time where it starts, which powers the source links |
 | 3. Embedding | `src/embedding.py` | OpenAI `text-embedding-3-small` for chunks and queries |
 | 4. Vector store | `src/faiss_index.py` | Builds, saves and reloads a FAISS index, so each video is indexed once |
 | 5. Retrieval | `src/reranker.py` | Top-20 similarity search, then a FlashRank cross-encoder keeps the best 4 |
 | 6. Augmentation | `src/context_builder.py` | Joins chunks and fills the prompt template |
 | 7. Generation | `src/generator.py` | Calls the LLM with the augmented prompt |
-| 8. Pipeline | `src/pipeline.py` | `run_rag`: retrieve, build context, generate. Used by both the app and the end-to-end eval, so they can't drift apart |
+| 8. Pipeline | `src/pipeline.py` | `run_rag`: retrieve, build context, generate. Used by both the app and the end-to-end eval, so they can't drift apart. Also builds the timestamped source links |
 | 9. Summaries | `src/summarizer.py` | Routes "summarize this video" questions to the full transcript, because top-k retrieval can't answer them |
+| 10. App | `app.py` | Streamlit chat UI: paste a link, chat, and click a source time to jump the embedded video. Limited to 10 questions per session to keep API cost bounded |
 
 The prompt tells the model to use only the transcript, answer directly, clean up speech-to-text errors, say what the video does not cover, and reply "I don't know based on this video." when the answer isn't there.
 
@@ -91,6 +94,7 @@ The final setup is chunk 1000/200, top-20 candidates, FlashRank reranking, k=4. 
 
 ### Limitations
 
+- **Hosted demo:** YouTube blocks transcript requests from cloud server IPs, so a copy deployed on Streamlit Community Cloud cannot fetch transcripts. The app runs fully on a local machine. Possible fixes (pre-loaded demo videos, a paste-transcript fallback, or a proxy) are on the [roadmap](#roadmap).
 - 15 golden questions per eval, so one question moves a score by about 6.7 points.
 - One judge model (`gpt-4o-mini`), so judge bias is not measured. Some golden contexts mix up similar terms (MMLU vs MMLU Pro) or don't answer their question, which makes a few items unstable and caps generator Faithfulness near 0.88.
 - Contextual Relevancy stays low (about 0.4), partly because of how spoken-word chunks are written, and Answer Relevancy penalizes a correct "I don't know".
@@ -105,8 +109,8 @@ The final setup is chunk 1000/200, top-20 candidates, FlashRank reranking, k=4. 
 **Requirements:** Python 3.12, [uv](https://docs.astral.sh/uv/), an OpenAI API key.
 
 ```bash
-git clone https://github.com/Dhruv06000/Self-Evaluating-RAG-System.git
-cd Self-Evaluating-RAG-System
+git clone https://github.com/Dhruv06000/TubeRAG.git
+cd TubeRAG
 uv sync
 ```
 
@@ -116,7 +120,15 @@ Create a `.env` file in the project root:
 OPENAI_API_KEY=your_key_here
 ```
 
-**Chat with a video.**
+**Web app (Streamlit).**
+
+```bash
+uv run streamlit run app.py
+```
+
+Paste a YouTube link, click **Load video**, and ask questions. Click a source time under an answer to jump the embedded video to that moment. Each session is limited to 10 questions.
+
+**Terminal chat.**
 
 ```bash
 uv run python main.py
@@ -140,7 +152,8 @@ The retriever and pipeline evals read `.vtt` transcript files from `knowledge_ba
 
 ```
 .
-├── main.py                 # YouTube chat loop
+├── app.py                  # Streamlit chat app
+├── main.py                 # terminal chat loop
 ├── src/                    # RAG pipeline, one module per step
 ├── evals/                  # eval scripts and shared harness
 ├── goldens/                # golden question sets
@@ -155,6 +168,7 @@ The retriever and pipeline evals read `.vtt` transcript files from `knowledge_ba
 
 Answers already come with timestamped source links, and videos are chosen by pasting a link. Planned, not built yet:
 
+- **Working hosted demo:** pre-loaded demo videos, a paste-transcript or upload fallback, and optionally a proxy for transcript fetching, so the hosted app doesn't depend on YouTube accepting cloud IPs.
 - **Cited answers, further:** show the supporting excerpts themselves with every answer.
 - **Chat memory** with history-aware query rewriting, so follow-up questions work.
 - **Wider input:** Hindi transcripts via translation, a Whisper fallback for videos without captions, and the same pipeline for PDF, Word, Markdown and web pages with a common metadata schema.
@@ -163,11 +177,11 @@ Answers already come with timestamped source links, and videos are chosen by pas
 
 ## Tech stack
 
-Python 3.12 · LangChain · OpenAI (embeddings and chat) · FAISS · FlashRank · DeepEval · youtube-transcript-api · uv
+Python 3.12 · LangChain · OpenAI (embeddings and chat) · FAISS · FlashRank · DeepEval · Streamlit · youtube-transcript-api · uv
 
 ## History
 
-The first version of this project was a PDF RAG with a plain-Python eval pipeline. It is preserved at the [`pdf-rag-v1`](https://github.com/Dhruv06000/Self-Evaluating-RAG-System/tree/pdf-rag-v1) tag.
+The first version of this project was a PDF RAG with a plain-Python eval pipeline. It is preserved at the [`pdf-rag-v1`](https://github.com/Dhruv06000/TubeRAG/tree/pdf-rag-v1) tag.
 
 ## License
 

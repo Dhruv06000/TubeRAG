@@ -1,5 +1,5 @@
 [project]
-name = "self-evaluating-rag"
+name = "TubeRAG"
 version = "0.1.0"
 description = "A YouTube chatbot that answers from video transcripts, with an automated eval suite for the retriever and generator."
 readme = "README.md"
