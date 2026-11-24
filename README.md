@@ -183,6 +183,10 @@ Python 3.12 · LangChain · OpenAI (embeddings and chat) · FAISS · FlashRank �
 
 The first version of this project was a PDF RAG with a plain-Python eval pipeline. It is preserved at the [`pdf-rag-v1`](https://github.com/Dhruv06000/TubeRAG/tree/pdf-rag-v1) tag.
 
+## Acknowledgments
+
+The transcripts and golden questions used by the evals come from LLM's Eval by CampusX, and are used with his permission. The retriever and pipeline evals read those transcripts from `knowledge_base/`. Thanks to Nitish sir for the course that inspired this project's evaluation approach.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
