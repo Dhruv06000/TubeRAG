@@ -30,7 +30,7 @@ def ingest_transcript(video_id: str, languages=ENGLISH_CODES) -> str:
             "The video may only have captions in another language."
         )
 
-# 1. LOAD ---- read each transcript, throw away the VTT timestamps
+# 1. LOAD read each transcript, throw away the VTT timestamps
 
 def load_transcripts(folder="knowledge_base"):
     docs = []

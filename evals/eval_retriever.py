@@ -43,12 +43,12 @@ def run(retriever):
     goldens = load_goldens(GOLDEN_PATH)[:LIMIT]
 
     test_cases = []
-    details = []                                              # NEW
+    details = []                                              
     for golden in goldens:
         retrieved = retriever.invoke(golden["query"])
         retrieval_context = [doc.page_content for doc in retrieved]
 
-        details.append({                                      # NEW
+        details.append({                                     
             "id": golden.get("id"),
             "query": golden["query"],
             "source": golden.get("source"),
@@ -92,7 +92,7 @@ def run(retriever):
         },
     )
 
-    # NEW: attach each metric's score and reason to its question (matched by input text)
+    # Attach each metric's score and reason to its question (matched by input text)
     by_input = {tr.input: tr for tr in result.test_results}
     for d in details:
         tr = by_input.get(d["query"])
@@ -101,7 +101,7 @@ def run(retriever):
             for m in (getattr(tr, "metrics_data", None) or [])
         }
 
-    return summarize_by_metric(result), details               # CHANGED: returns two things
+    return summarize_by_metric(result), details              
 
 
 def run_local():
@@ -112,13 +112,13 @@ def run_local():
 
 
 if __name__ == "__main__":
-    summary, details = run_local()                            # CHANGED
+    summary, details = run_local()
     print_summary("retriever", summary)
 
     if LIMIT is not None:
         print("\nSmoke test (LIMIT is set): not saving a result file.")
     else:
-        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")      # NEW: no more overwriting
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = "result/retriever_evaluation_result"
         os.makedirs(out_dir, exist_ok=True)
         path = os.path.join(out_dir, f"retriever_rerank_{CHUNK_SIZE}_k{TOP_K}_{stamp}.json")
@@ -135,6 +135,6 @@ if __name__ == "__main__":
                     "golden_set": GOLDEN_PATH
                     },
                 "summary": summary,
-                "details": details,                           # NEW
+                "details": details,
             }, f, indent=4, ensure_ascii=False)
         print(f"Saved to {path}")

@@ -1,9 +1,7 @@
 # evals/eval_rag_pipeline.py
 """End-to-end evaluation of the whole RAG pipeline (retriever + generator together).
 
-Unlike eval_generator.py (which feeds golden context), the context here is
-whatever the retriever ACTUALLY returns, so a low score can come from either
-component. Compare with the retriever and generator evals to see which one.
+Unlike eval_generator.py (which feeds golden context), the context here is whatever the retriever ACTUALLY returns, so a low score can come from either component. Compare with the retriever and generator evals to see which one.
 
     uv run python -m evals.eval_rag_pipeline
 """
@@ -28,7 +26,7 @@ from src.pipeline import run_rag
 from evals.eval_retriever import (
     load_kb_chunks, KB_INDEX_PATH, EMBEDDING_MODEL,
     CHUNK_SIZE, CHUNK_OVERLAP, TOP_K,FETCH_K
-)   # reuse the retriever eval's index + settings so both evals test the same retriever
+)
 from evals.harness import load_goldens, summarize_by_metric, print_summary
 
 load_dotenv()

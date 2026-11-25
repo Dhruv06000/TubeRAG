@@ -1,8 +1,7 @@
 # evals/eval_generator.py
 """Component-level evaluation of the GENERATOR, in isolation.
 
-The generator gets the GOLDEN context (known-good chunks), not the retriever's
-output, so a low score is the generator's fault alone.
+The generator gets the GOLDEN context (known-good chunks), not the retriever's output, so a low score is the generator's fault alone.
 
     uv run python -m evals.eval_generator
 """

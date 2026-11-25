@@ -19,8 +19,7 @@ def get_reranking_retriever(
     model_name: str = "ms-marco-MiniLM-L-12-v2",
     cache_dir: str = "data/flashrank_cache",
 ):
-    """Fetch fetch_k candidates by embedding similarity, re-score them against the
-    question with a cross-encoder, keep the best k. Same .invoke(question) -> docs
+    """Fetch fetch_k candidates by embedding similarity, re-score them against the question with a cross-encoder, keep the best k. Same .invoke(question) -> docs
     interface as get_retriever, so run_rag and the evals need no other change."""
     os.makedirs(cache_dir, exist_ok=True)
     base = vector_store.as_retriever(

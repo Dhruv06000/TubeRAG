@@ -2,23 +2,15 @@
 """
 Shared harness for the eval suite.
 
-The eval files each run their own DeepEval evaluation and return results; this
-module holds the two pieces they all share:
+The eval files each run their own DeepEval evaluation and return results; this module holds the two pieces they all share:
 
   load_goldens(path)          -- read a golden JSON file
   summarize_by_metric(result) -- turn a DeepEval EvaluationResult into a
                                  PER-METRIC summary (pass rate + score stats)
 
-Why per-metric and not pooled: a single eval file often runs several metrics at
-once (correctness + completeness + style; the RAG triad; faithfulness +
-relevancy). Pooling them into one number would let a regression in ONE metric
-hide behind the others. summarize_by_metric keeps each metric separate, which is
-exactly what the regression suite compares against the baseline.
+Why per-metric and not pooled: a single eval file often runs several metrics at once (correctness + completeness + style; the RAG triad; faithfulness + relevancy). Pooling them into one number would let a regression in ONE metric hide behind the others. summarize_by_metric keeps each metric separate, which is exactly what the regression suite compares against the baseline.
 
-The extractor is defensive across DeepEval versions: test results may live on
-`.test_results` (or be a bare list), and per-test metrics on `.metrics_data`
-(newer) or `.metrics` (older). It keys pass/fail off each metric's own `success`
-flag, so it stays correct whether higher or lower score is "good".
+The extractor is defensive across DeepEval versions: test results may live on `.test_results` (or be a bare list), and per-test metrics on `.metrics_data`(newer) or `.metrics` (older). It keys pass/fail off each metric's own `success` flag, so it stays correct whether higher or lower score is "good".
 """
 
 import json

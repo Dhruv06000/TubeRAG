@@ -11,12 +11,13 @@ from src.generator import get_llm
 from src.pipeline import run_rag, get_sources, is_refusal, fmt_time
 from src.summarizer import needs_summary, build_summary_chain
 
-load_dotenv()  # reads .env locally; on Streamlit Cloud the key comes from Secrets (Day 3)
+load_dotenv()  
 
 MAX_QUESTIONS = 10
 
 
-# ---------- cached heavy objects ----------
+# cached heavy objects
+
 @st.cache_resource(show_spinner=False)
 def load_video(video_id: str):
     """Fetch transcript, build or load the index. Runs once per video."""
@@ -35,7 +36,8 @@ def get_models():
     return get_prompt_template(), llm, build_summary_chain(llm)
 
 
-# ---------- page ----------
+# page
+
 st.set_page_config(page_title="TubeRAG", page_icon="🎬")
 st.title("🎬 TubeRAG")
 st.caption("Chat with any YouTube video that has English captions. "
